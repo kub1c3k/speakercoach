@@ -1,10 +1,60 @@
-<nav class="container mx-auto my-2 flex">
-  <ul class="flex w-full items-center text-blue-400">
-    <li class="font-bold">Kouč rečníctva</li>
-    
-    <div class="ml-auto flex space-x-4">
-      <li>O nás</li>
-      <li>Spustiť test</li>
-    </div>
-  </ul>
+<nav class="p-5 bg-white shadow-lg md:flex md:items-center md:justify-between relative">
+  <div class="flex justify-between items-center">
+    <a href="#" class="text-2xl md:text-3xl font-bold text-green-400 tracking-wide hover:text-green-500 transition-transform duration-300 transform hover:scale-105">
+      Kouč <span class="text-gray-700">rečníctva</span>
+    </a>
+
+    <ion-icon id="hamburgerIcon" name="menu" class="text-3xl md:hidden cursor-pointer hover:text-green-500 transition-colors duration-300"></ion-icon>
+  </div>
+
+  <ul id="mainNav" class="md:flex md:items-center md:static absolute bg-white w-full left-0 md:w-auto md:py-0 py-6 pl-7 md:pl-0 hidden md:block shadow-lg md:shadow-none rounded-b-xl transition-all duration-500 ease-in-out">
+    <li class="mx-4 my-6 md:my-0">
+      <a href="{% url 'landingpage' %}"class="text-xl text-gray-700 font-medium hover:text-green-400 transition-transform duration-300 transform hover:scale-105">
+        Domov
+      </a>
+    </li>
+    <li class="mx-4 my-6 md:my-0">
+      <a href="{% url 'test' %}" class="text-xl text-gray-700 font-medium hover:text-green-400 transition-transform duration-300 transform hover:scale-105">
+        Začni test
+      </a>
+    </li>
+  
+<li class="mx-4 my-6 md:my-0">
+  <a href="{% url 'login' %}">
+    <button class="bg-gradient-to-r from-cyan-400 to-green-400 text-white font-semibold px-8 py-3 rounded-full shadow-lg hover:shadow-xl transition-transform duration-300 transform hover:scale-105 hover:from-green-400 hover:to-green-500">
+      Prihlásiť
+    </button>
+  </a>
+</li>
+
 </nav>
+
+<script>
+  const hamburgerIcon = document.getElementById('hamburgerIcon');
+  const navMenu = document.getElementById('mainNav');
+
+  hamburgerIcon.addEventListener('click', () => {
+    navMenu.classList.toggle('hidden');
+    hamburgerIcon.name = hamburgerIcon.name === 'menu' ? 'close' : 'menu';
+  });
+
+  // Close menu on link click (mobile)
+  document.querySelectorAll('#mainNav a').forEach(navLink => {
+    navLink.addEventListener('click', () => {
+      if (window.innerWidth < 768) {
+        navMenu.classList.add('hidden');
+        hamburgerIcon.name = 'menu';
+      }
+    });
+  });
+
+  // Reset menu on resize
+  window.addEventListener('resize', () => {
+    if (window.innerWidth >= 768) {
+      navMenu.classList.remove('hidden');
+    } else {
+      navMenu.classList.add('hidden');
+      hamburgerIcon.name = 'menu';
+    }
+  });
+</script>

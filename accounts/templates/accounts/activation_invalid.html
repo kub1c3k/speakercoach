@@ -1,0 +1,11 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="max-w-md mx-auto my-12 p-8 bg-white rounded-xl shadow-lg text-center">
+    <h2 class="text-3xl font-bold text-red-500 mb-6">Neplatný odkaz</h2>
+    <p class="mb-6">Odkaz na aktiváciu je neplatný alebo vypršal. Skúste sa registrovať znova.</p>
+    <a href="{% url 'signup' %}"
+       class="inline-block bg-gradient-to-r from-cyan-400 to-green-400 text-white font-semibold py-3 px-6 rounded-full shadow-lg hover:shadow-xl transition-transform duration-300 transform hover:scale-105">
+       Registrovať sa
+    </a>
+</div>
+{% endblock %}

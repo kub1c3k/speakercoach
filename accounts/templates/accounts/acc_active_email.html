@@ -1,0 +1,7 @@
+<p>Ahoj {{ user.username }},</p>
+<p>Kliknite na odkaz nižšie pre overenie účtu:</p>
+<p>
+  <a href="http://{{ domain }}{% url 'activate' uidb64=uid token=token %}">
+    Overiť účet
+  </a>
+</p>

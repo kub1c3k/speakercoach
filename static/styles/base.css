@@ -1,0 +1,43 @@
+.auth-container, .dashboard-container {
+    max-width: 500px;
+    margin: 2rem auto;
+    padding: 2rem;
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    text-align: center;
+}
+
+.auth-container h2, .dashboard-container h2 {
+    color: #1E88E5;
+    margin-bottom: 1rem;
+}
+
+.auth-container button {
+    padding: 10px 24px;
+    background: #1E88E5;
+    color: white;
+    border: none;
+    border-radius: 12px;
+    cursor: pointer;
+    font-size: 1rem;
+}
+
+.auth-container a {
+    color: #1E88E5;
+    text-decoration: none;
+}
+.auth-container a:hover {
+    text-decoration: underline;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 1rem;
+}
+table th, table td {
+    padding: 8px;
+    border-bottom: 1px solid #ddd;
+    text-align: center;
+}

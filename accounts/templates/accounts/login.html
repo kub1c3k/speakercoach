@@ -1,0 +1,20 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="max-w-md mx-auto my-12 p-8 bg-white rounded-xl shadow-lg text-center">
+    <h2 class="text-3xl font-bold text-cyan-600 mb-6">Prihlásenie</h2>
+    <form method="post" class="space-y-4">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit"
+            class="w-full bg-gradient-to-r from-cyan-400 to-green-400 text-white font-semibold py-3 rounded-full shadow-lg hover:shadow-xl transition-transform duration-300 transform hover:scale-105">
+            Prihlásiť sa
+        </button>
+    </form>
+    <p class="mt-4 text-sm">Nemáte účet? 
+        <a href="{% url 'signup' %}" class="text-cyan-600 hover:underline">Registrovať sa</a>
+    </p>
+    <p class="mt-2 text-sm">
+        <a href="{% url 'password_reset' %}" class="text-cyan-600 hover:underline">Zabudli ste heslo?</a>
+    </p>
+</div>
+{% endblock %}

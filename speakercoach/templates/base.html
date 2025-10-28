@@ -3,14 +3,30 @@
   <head>
     {% load static %}
     <link rel="stylesheet" href="{%static 'dist/styles.css'%}">
-    <link rel="stylesheet" href="{%static 'styles/base.css'%}">
     <link href="https://cdn.tailwindcss.com" rel="stylesheet">
+    <link
+  rel="stylesheet"
+  href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css"
+  integrity="sha512-KKc1vwKmKzRV4O4LPg8W6K64oXvSGH8iSK8qHNmZVwZXnBlCq3OQzPdr0A1AHzE0MqR8fILCvf0bdfZZm7ke8g=="
+  crossorigin="anonymous"
+  referrerpolicy="no-referrer"
+/>
+    <link rel="stylesheet" href="{%static 'styles/base.css'%}">
+
+    <script src="https://kit.fontawesome.com/YOUR_KIT_ID.js" crossorigin="anonymous"></script>
 
     {% block title %}
       <title>Kouč rečníctva</title>
     {% endblock %}
+
+
+
+    
+    {% block extra_head %}
+
+    {% endblock %}
   </head>
-  <body>
+  <body class ="bg-gradient-to-br from-green-400 to-blue-500 min-h-screen flex-col"->
 
     {% include "navbar.html" %}
 
@@ -19,5 +35,7 @@
    {% endblock %}
 
    {% include "footer.html" %}
+   <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
+<script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
   </body>
 </html>

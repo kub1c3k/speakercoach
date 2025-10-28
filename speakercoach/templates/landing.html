@@ -1,1 +1,19 @@
 {% extends "base.html" %}
+
+
+{% block content %}
+    
+<main class="container mx-auto px-4 py-16 mt-15 " >
+    <div class="text-center text-white p-8">
+      <h1 class="text-5xl font-bold mb-6">Vítajte u nás</h1>
+      <p class="text-xl opacity-90 max-w-2xl mx-auto">
+  Staňte sa sebavedomým rečníkom, ktorý zaujme každého poslucháča. Naši odborníci vám pomôžu prekonať strach z verejného vystupovania a zdokonaliť vašu rečnícku techniku. Príďte si to vyskúšať a rozvíjajte svoje schopnosti, ktoré vám otvoria nové možnosti!
+      </p>
+    </div>
+    <div class="flex flex-row justify-center mt-4 text-center text-white gap-x-4">
+        <button class="bg-transparent border-2 border-solid rounded-2xl p-1.5 hover:text-green-400 transition-transform duration-300 transform hover:scale-105">Ste tu prvý krát?</button>
+        <button class="bg-transparent border-2 border-solid rounded-2xl p-1.5 hover:text-green-400 transition-transform duration-300 transform hover:scale-105">Poznám vás</button>
+    </div>
+</main>
+
+{% endblock %}

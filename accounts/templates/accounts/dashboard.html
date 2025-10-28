@@ -1,0 +1,37 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="max-w-3xl mx-auto my-12 p-8 bg-white rounded-xl shadow-lg">
+    <h2 class="text-3xl font-bold text-cyan-600 mb-6 text-center">Vitajte, {{ request.user.username }}!</h2>
+    <h3 class="text-xl font-semibold mb-4">História vašich výsledkov:</h3>
+
+    {% if scores %}
+        <div class="overflow-x-auto">
+            <table class="w-full text-center border-collapse">
+                <thead>
+                    <tr class="bg-cyan-100">
+                        <th class="py-2 px-4 border">Dátum</th>
+                        <th class="py-2 px-4 border">Očný kontakt (%)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for score in scores %}
+                    <tr class="hover:bg-cyan-50">
+                        <td class="py-2 px-4 border">{{ score.date|date:"d.m.Y H:i" }}</td>
+                        <td class="py-2 px-4 border">{{ score.eye_contact_percentage }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% else %}
+        <p class="text-center mt-4 text-gray-500">Zatiaľ žiadne výsledky.</p>
+    {% endif %}
+
+    <div class="text-center mt-6">
+        <a href="{% url 'logout' %}"
+            class="inline-block bg-gradient-to-r from-red-400 to-pink-500 text-white font-semibold py-2 px-6 rounded-full shadow-lg hover:shadow-xl transition-transform duration-300 transform hover:scale-105">
+            Odhlásiť sa
+        </a>
+    </div>
+</div>
+{% endblock %}

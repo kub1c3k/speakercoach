@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="max-w-md mx-auto my-12 p-8 bg-white rounded-xl shadow-lg text-center">
+    <h2 class="text-3xl font-bold text-cyan-600 mb-6">Registrácia</h2>
+    <form method="post" class="space-y-4">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit"
+            class="w-full bg-gradient-to-r from-cyan-400 to-green-400 text-white font-semibold py-3 rounded-full shadow-lg hover:shadow-xl transition-transform duration-300 transform hover:scale-105">
+            Registrovať
+        </button>
+    </form>
+    <p class="mt-4 text-sm">Už máte účet? 
+        <a href="{% url 'login' %}" class="text-cyan-600 hover:underline">Prihlásiť sa</a>
+    </p>
+</div>
+{% endblock %}

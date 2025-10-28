@@ -1,0 +1,169 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block extra_head %}
+<style>
+  /* === GENERAL LAYOUT === */
+  body {
+    font-family: 'Inter', Arial, sans-serif;
+    text-align: center;
+    background: linear-gradient(180deg, #f9fafb 0%, #e3f2fd 100%);
+    color: #1e293b;
+    margin: 0;
+    padding: 0;
+  }
+
+  h1 {
+    font-size: clamp(1.5rem, 3vw, 2.5rem);
+    margin-top: 2rem;
+    color: #1E88E5;
+  }
+
+  /* === VIDEO + CANVAS CONTAINER === */
+  .cont {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 2vw;
+    padding: 2rem 5vw;
+    flex-wrap: wrap; /* responsive stacking */
+  }
+
+  .cont video,
+  .cont canvas {
+    width: 45vw;
+    max-width: 640px;
+    aspect-ratio: 4 / 3;
+    border: 2px solid #1E88E5;
+    border-radius: 16px;
+    box-shadow: 0 4px 10px rgba(30, 136, 229, 0.2);
+    background: #000;
+  }
+
+  /* === RESULTS PANEL === */
+  .results-container {
+    background: #ffffff;
+    border-radius: 16px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    width: 90%;
+    max-width: 500px;
+    margin: 2rem auto;
+    padding: 1.5rem;
+    text-align: center;
+    transition: all 0.3s ease;
+  }
+
+  .results-container h3 {
+    color: #1565C0;
+    margin-bottom: 0.5rem;
+  }
+
+  #test_info {
+    font-weight: 500;
+    color: #444;
+  }
+
+  #test_status {
+    margin: 1rem 0;
+    font-size: 1.1rem;
+    color: #1E88E5;
+  }
+
+  /* === PROGRESS BAR === */
+  #progress_bar_container {
+    width: 100%;
+    height: 12px;
+    background: #e0e0e0;
+    border-radius: 6px;
+    overflow: hidden;
+    margin: 1rem 0;
+  }
+
+  #progress_bar {
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(90deg, #4CAF50, #81C784);
+    transition: width 0.3s ease;
+  }
+
+  /* === BUTTON === */
+  #start_button {
+    padding: 10px 24px;
+    background: #1E88E5;
+    color: white;
+    border: none;
+    border-radius: 12px;
+    cursor: pointer;
+    font-size: 1rem;
+    font-weight: 600;
+    transition: background 0.3s ease, transform 0.2s ease;
+  }
+
+  #start_button:hover {
+    background: #1565C0;
+    transform: translateY(-2px);
+  }
+
+  #start_button:active {
+    transform: translateY(0);
+  }
+
+  /* === RESPONSIVE BREAKPOINTS === */
+  @media (max-width: 768px) {
+    .cont {
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    .cont video,
+    .cont canvas {
+      width: 90vw;
+    }
+
+    .results-container {
+      width: 95%;
+      padding: 1rem;
+    }
+  }
+
+  @media (max-width: 480px) {
+    h1 {
+      font-size: 1.5rem;
+    }
+
+    #test_status {
+      font-size: 1rem;
+    }
+
+    #start_button {
+      width: 100%;
+    }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<h1>🎤 Inteligentný kouč rečníctva</h1>
+
+<div class="cont">
+  <video id="inputVideo" autoplay playsinline></video>
+  <canvas id="outputCanvas"></canvas>
+</div>
+
+<div id="eye_contact_info" class="results-container">
+  <h3>Inteligentný kouč rečníctva</h3>
+  <p id="test_info">Test očného kontaktu</p>
+  <div id="test_status">Čakám na spustenie...</div>
+  
+  <div id="progress_bar_container">
+    <div id="progress_bar"></div>
+  </div>
+
+  <button id="start_button" onclick="startCamera()">Spustiť test</button>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/face_mesh.js"></script>
+<script src="{% static 'js/eyecontact.js' %}"></script>
+{% endblock %}
