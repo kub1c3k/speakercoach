@@ -5,6 +5,14 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="{% static 'css/style.css' %}">
 
+<!-- <script src="{% static 'facemesh/face_mesh.js' %}"></script>
+<script src="{% static 'facemesh/camera_utils.js' %}"></script>
+<script src="{% static 'facemesh/drawing_utils.js' %}"></script>-->
+
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/face_mesh.js"></script>
+
 {% endblock %}
 
 {% block content %}
@@ -95,9 +103,6 @@
     </div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/face_mesh.js"></script>
 
 <script src="{% static 'js/eyecontact.js' %}"></script>
 
@@ -128,7 +133,6 @@ function showHistory() {
     panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
 }
 
-// Aktualizácia statistik v reálnom čase
 function updateStatsUI() {
     if (sessionManager.currentSession && sessionManager.currentSession.frames.length > 0) {
         const frames = sessionManager.currentSession.frames;
@@ -139,7 +143,6 @@ function updateStatsUI() {
         document.getElementById('confidenceScore').textContent = 
             Math.round(lastFrame.confidence * 100) + '%';
         
-        // Vypočítaj čas
         if (appState.testStartTime) {
             const elapsed = Date.now() - appState.testStartTime;
             const minutes = Math.floor(elapsed / 60000);
@@ -150,7 +153,6 @@ function updateStatsUI() {
     }
 }
 
-// Pravidelná aktualizácia UI
 setInterval(updateStatsUI, 1000);
 </script>
 {% endblock %}
