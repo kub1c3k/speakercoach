@@ -1441,8 +1441,7 @@ function loadScript(src) {
 function setupFaceMeshResults() {
     faceMesh.onResults((results) => {
         if (!shouldRenderFrame()) return;
-        
-        canvasCtx.save();
+        c
         canvasCtx.clearRect(0, 0, elements.canvas.width, elements.canvas.height);
         
         if (results.image) {

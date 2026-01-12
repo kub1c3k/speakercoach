@@ -1,158 +1,141 @@
-{% extends "base.html" %}
+{% extends 'base.html' %}
 {% load static %}
 
-{% block extra_head %}
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="{% static 'css/style.css' %}">
-
-<!-- <script src="{% static 'facemesh/face_mesh.js' %}"></script>
-<script src="{% static 'facemesh/camera_utils.js' %}"></script>
-<script src="{% static 'facemesh/drawing_utils.js' %}"></script>-->
-
-<script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/face_mesh.js"></script>
-
-{% endblock %}
-
 {% block content %}
-<div class="container">
-    <h1>🎤 Inteligentný kouč rečníctva</h1>
-    <p class="subtitle">Analyzujte a zlepšite svoj očný kontakt a rečnícke schopnosti</p>
-    
-    <div class="media-container">
-        <div class="video-wrapper">
-            <video id="inputVideo" autoplay playsinline muted></video>
-            <div class="video-label">Vstup z kamery</div>
-        </div>
-        
-        <div class="canvas-wrapper">
-            <canvas id="outputCanvas"></canvas>
-            <div class="canvas-label">Analýza v reálnom čase</div>
+<div class="flex flex-col items-center w-full max-w-4xl mx-auto mt-6 space-y-6">
+
+    <!-- kamera -->
+    <div class="w-full bg-white rounded-xl shadow-lg p-4">
+        <video
+            id="camera"
+            autoplay
+            playsinline
+            class="w-full aspect-video rounded-lg bg-black object-cover">
+        </video>
+    </div>
+
+    <!-- canvas -->
+    <canvas id="canvas" width="640" height="480" class="hidden"></canvas>
+
+    <!-- časovač + inštrukcie -->
+    <div class="w-full bg-white rounded-xl shadow-lg p-6 flex flex-col items-center space-y-4">
+        <div class="text-4xl font-mono font-semibold text-gray-800">00:00</div>
+        <div class="text-center text-gray-600 space-y-1">
+            <p>Uistite sa že ste výborne osvetlený</p>
+            <p>Po zmáčknutí kalibrácie prejdite myškou na tlačidlo OK</p>
+            <p>Následne pohnite učami úplne do prikázanej strany až dokým sa nezjaví druhé upozornenie</p>
         </div>
     </div>
-    
-    <div id="eye_contact_info" class="results-container">
-        <h3>🤝 Analýza očného kontaktu</h3>
-        <p id="test_info">Nastavte dĺžku prejavu a začnite test</p>
-        
-        <div id="test_status" class="pulse">
-            Čakám na spustenie...
-        </div>
-        
-        <div id="live_feedback">
-        </div>
-        
-        <div class="progress-container">
-            <div id="progress_bar_container">
-                <div id="progress_bar"></div>
-            </div>
-            <div class="progress-labels">
-                <span>0%</span>
-                <span>50%</span>
-                <span>100%</span>
-            </div>
-        </div>
-        
-        <div class="stats-grid">
-            <div class="stat-card">
-                <div class="stat-label">Celkový čas</div>
-                <div class="stat-value" id="totalTime">0:00</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-label">Očný kontakt</div>
-                <div class="stat-value" id="eyeContactScore">0%</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-label">Konzistentnosť</div>
-                <div class="stat-value" id="consistencyScore">0%</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-label">Spokojnosť</div>
-                <div class="stat-value" id="confidenceScore">0%</div>
-            </div>
-        </div>
-        
-        <div class="button-container">
-            <button id="start_button" onclick="startCamera()">
-                🚀 Spustiť test
-            </button>
-            <button class="secondary-button" onclick="calibrationManager.startCalibration()">
-                ⚙️ Kalibrácia
-            </button>
-            <button class="secondary-button" onclick="showHistory()">
-                📊 História
-            </button>
+
+    <!-- Controls Card -->
+    <div class="w-full bg-white rounded-xl shadow-lg p-6 mb-4">
+        <div class="flex flex-col sm:flex-row gap-4 justify-center">
+            <button id="startButton" class="px-6 py-3 rounded-lg bg-blue-600 text-white font-medium hover:bg-blue-700 transition">Štart</button>
+            <button id="calibrateButton" class="px-6 py-3 rounded-lg bg-blue-600 text-white font-medium hover:bg-blue-700 transition">Kalibrovať</button>
+            <button id="stopButton" class="px-6 py-3 rounded-lg bg-blue-600 text-white font-medium hover:bg-blue-700 transition">Stop</button>
         </div>
     </div>
-    
-    <div class="history-panel" id="historyPanel" style="display: none;">
-        <h4>📈 História pokusov</h4>
-        <div class="history-list" id="historyList">
+
+    <!-- Modal Overlay -->
+    <div id="modal" class="fixed inset-0 bg-black/50 flex items-center justify-center hidden z-50">
+        <div class="bg-white rounded-xl shadow-lg w-full max-w-md p-6 space-y-6">
+            <h2 class="text-xl font-semibold text-gray-800">Potvrdenie</h2>
+            <p class="text-gray-600">Naozaj chceš pokračovať?</p>
+            <div class="flex justify-end gap-4">
+                <button id="noBtn" class="px-4 py-2 rounded-lg bg-gray-200 hover:bg-gray-300">Nie</button>
+                <button id="yesBtn" class="px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700">Áno</button>
+            </div>
         </div>
     </div>
-    
-    <div class="instructions">
-        <h4>💡 Ako dosiahnuť najlepšie výsledky:</h4>
-        <ol>
-            <li>Vykonajte kalibráciu pred prvým použitím</li>
-            <li>Umiestnite sa 50-100 cm od kamery</li>
-            <li>Dobré osvetlenie tváre zlepšuje presnosť</li>
-            <li>Pravidelné cvičenie vedie k trvalému zlepšeniu</li>
-        </ol>
+
+    <!-- Results Panel with Gaze Bars, Speech Metrics, and Hesitation Graph -->
+    <div id="resultsPanel" class="w-full bg-white rounded-xl shadow-lg p-6 space-y-4 hidden">
+        <h2 class="text-xl font-semibold text-gray-800">Výsledky</h2>
+        <div>Trvanie: <span id="sessionTime">00:00</span></div>
+
+        <!-- Gaze Bars -->
+        <div class="space-y-2">
+            <div class="gaze-bar-container">
+                <div class="flex justify-between"><span>STRED</span><span id="barCenterValue">0%</span></div>
+                <div class="w-full h-4 bg-gray-200 rounded-full">
+                    <div id="barCenter" class="h-4 bg-green-500 rounded-full w-0"></div>
+                </div>
+            </div>
+            <div class="gaze-bar-container">
+                <div class="flex justify-between"><span>ĽAVO</span><span id="barLeftValue">0%</span></div>
+                <div class="w-full h-4 bg-gray-200 rounded-full">
+                    <div id="barLeft" class="h-4 bg-blue-500 rounded-full w-0"></div>
+                </div>
+            </div>
+            <div class="gaze-bar-container">
+                <div class="flex justify-between"><span>PRAVO</span><span id="barRightValue">0%</span></div>
+                <div class="w-full h-4 bg-gray-200 rounded-full">
+                    <div id="barRight" class="h-4 bg-orange-500 rounded-full w-0"></div>
+                </div>
+            </div>
+            <div class="gaze-bar-container">
+                <div class="flex justify-between"><span>HORE</span><span id="barUpValue">0%</span></div>
+                <div class="w-full h-4 bg-gray-200 rounded-full">
+                    <div id="barUp" class="h-4 bg-purple-500 rounded-full w-0"></div>
+                </div>
+            </div>
+            <div class="gaze-bar-container">
+                <div class="flex justify-between"><span>DOLE</span><span id="barDownValue">0%</span></div>
+                <div class="w-full h-4 bg-gray-200 rounded-full">
+                    <div id="barDown" class="h-4 bg-red-500 rounded-full w-0"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Speech Metrics -->
+        <div class="pt-4 border-t border-gray-200 grid grid-cols-2 gap-2">
+            <div><strong>Celkový počet slov:</strong> <span id="wordCount">0</span></div>
+            <div><strong>Tempo (SZM):</strong> <span id="tempoWPM">0</span></div>
+            <div><strong>Parazitné slová:</strong> <span id="fillerCount">0</span></div>
+            <div><strong>Hezitácie, nevhodné pauzy:</strong> <span id="hesitationCount">0</span></div>
+        </div>
+
+        <!-- Hesitations Over Time Graph -->
+        <div class="pt-4 border-t border-gray-200">
+            <h3 class="text-lg font-semibold text-gray-800 mb-2">Hezitácie v časovej závislosti</h3>
+            <canvas id="hesitationGraph" width="600" height="200"></canvas>
+        </div>
     </div>
+
+<div id="feedbackPanel" class="w-full bg-white rounded-xl shadow-lg p-6 space-y-4 mt-6 hidden mb-3">
+  <h2 class="text-xl font-semibold text-gray-800">📋 Interpretácia výsledkov</h2>
+
+  <!-- Tempo -->
+  <div id="feedbackTempo" class="p-4 bg-gray-50 rounded-lg border-l-4 border-blue-500"></div>
+
+  <!-- Hesitations -->
+  <div id="feedbackHesitations" class="p-4 bg-gray-50 rounded-lg border-l-4 border-pink-500"></div>
+
+  <!-- Gaze -->
+  <div id="feedbackGaze" class="p-4 bg-gray-50 rounded-lg border-l-4 border-green-500"></div>
+
+  <!-- Hesitations over time -->
+  <div id="feedbackGraph" class="p-4 bg-gray-50 rounded-lg border-l-4 border-purple-500">
+    <strong>Tipy k pauzám:</strong> Sledujte rast hesitácií a snažte sa udržiavať plynulosť reči.
+  </div>
+
+  <!-- Disclaimer -->
+  <div class="text-sm text-gray-500 italic">
+    ℹ️ Tento nástroj používa open-source knižnice MediaPipe a Web APIs. 
+Je určený len na tréning a vzdelávanie, nie na medicínske alebo psychologické poradenstvo. 
+Všetky údaje sú len pre osobné použitie.
+
+  </div>
 </div>
 
 
-<script src="{% static 'js/eyecontact.js' %}"></script>
+</div> <!-- End main container -->
 
-<script>
-function showHistory() {
-    const panel = document.getElementById('historyPanel');
-    const list = document.getElementById('historyList');
-    
-    const history = sessionManager.getProgressReport(10);
-    
-    if (history.length === 0) {
-        list.innerHTML = '<p style="text-align: center; color: var(--text-secondary);">Žiadna história</p>';
-    } else {
-        let html = '';
-        history.forEach(item => {
-            html += `
-                <div class="history-item">
-                    <span>${item.date}</span>
-                    <span><strong>${item.score}</strong></span>
-                    <span>${item.duration}</span>
-                    <span>${item.improvement}</span>
-                </div>
-            `;
-        });
-        list.innerHTML = html;
-    }
-    
-    panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
-}
+<!-- Scripts -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/face_mesh.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js"></script>
+<script src="{% static 'js/main.js' %}"></script>
 
-function updateStatsUI() {
-    if (sessionManager.currentSession && sessionManager.currentSession.frames.length > 0) {
-        const frames = sessionManager.currentSession.frames;
-        const lastFrame = frames[frames.length - 1];
-        
-        document.getElementById('eyeContactScore').textContent = 
-            Math.round(lastFrame.eyeContactScore) + '%';
-        document.getElementById('confidenceScore').textContent = 
-            Math.round(lastFrame.confidence * 100) + '%';
-        
-        if (appState.testStartTime) {
-            const elapsed = Date.now() - appState.testStartTime;
-            const minutes = Math.floor(elapsed / 60000);
-            const seconds = Math.floor((elapsed % 60000) / 1000);
-            document.getElementById('totalTime').textContent = 
-                `${minutes}:${seconds.toString().padStart(2, '0')}`;
-        }
-    }
-}
-
-setInterval(updateStatsUI, 1000);
-</script>
 {% endblock %}
