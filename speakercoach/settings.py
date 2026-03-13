@@ -28,12 +28,11 @@ if not OPENAI_API_KEY:
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-0w@4-clq*sahdj6d78)p=t^*8liz-#&85li-xr56_&j@wdz-%y'
-
+SECRET_KEY = os.getenv("SECRET_KEY")
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['localhost', '127.0.0.1', 'speakercoach.onrender.com']
 
 CACHES = {
     "default": {
@@ -44,9 +43,11 @@ CACHES = {
 
 RATELIMIT_USE_CACHE = "default"
 
+SESSION_COOKIE_SECURE = True
+CSRF_COOKIE_SECURE = True
+SECURE_SSL_REDIRECT = True
+SECURE_HSTS_SECONDS = 3600
 
-
-# Application definition
 
 INSTALLED_APPS = [
     'django.contrib.admin',
