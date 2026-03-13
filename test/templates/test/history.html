@@ -1,0 +1,110 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto px-4 py-8">
+    <h1 class="text-3xl font-bold mb-2">História môjho výkonu</h1>
+    <p class="text-gray-600 mb-6">Tu nájdete prehľad vašich minulých vystúpení.</p>
+
+    <form method="get" class="mb-6 flex gap-3 items-end">
+        <div>
+            <label for="id" class="block text-sm font-medium mb-1">Hľadať podľa ID</label>
+            <input
+                type="text"
+                name="id"
+                id="id"
+                value="{{ search_id }}"
+                placeholder="Napr. 12"
+                class="border rounded-lg px-3 py-2 w-40"
+            >
+        </div>
+        <button type="submit" class="px-4 py-2 bg-black text-white rounded-lg">
+            Hľadať
+        </button>
+        <a href="{% url 'history_page' %}" class="px-4 py-2 border rounded-lg">
+            Reset
+        </a>
+    </form>
+
+    {% for score in page_obj %}
+        <div class="p-5 mb-4 bg-white rounded-2xl shadow border border-gray-100">
+            <div class="flex items-center justify-between mb-4">
+                <h2 class="text-lg font-semibold">
+                    Session #{{ score.id }} z {{ score.date|date:"d.m.Y H:i" }}
+                </h2>
+                <span class="text-sm text-gray-500">
+                    {{ score.duration_seconds }} s
+                </span>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                <div class="bg-gray-50 rounded-xl p-4">
+                    <h3 class="font-semibold mb-2">Eye contact</h3>
+                    <p><strong>Stred:</strong> {{ score.eye_contact_percentage|floatformat:1 }}%</p>
+                    <p><strong>Vľavo:</strong> {{ score.left_percentage|floatformat:1 }}%</p>
+                    <p><strong>Vpravo:</strong> {{ score.right_percentage|floatformat:1 }}%</p>
+                    <p><strong>Hore:</strong> {{ score.up_percentage|floatformat:1 }}%</p>
+                    <p><strong>Dole:</strong> {{ score.down_percentage|floatformat:1 }}%</p>
+                </div>
+
+                <div class="bg-gray-50 rounded-xl p-4">
+                    <h3 class="font-semibold mb-2">Reč</h3>
+                    <p><strong>Počet slov:</strong> {{ score.total_words }}</p>
+                    <p><strong>Tempo:</strong> {{ score.tempo_wpm }} WPM</p>
+                    <p><strong>Parazitné slová:</strong> {{ score.filler_count }}</p>
+                    <p><strong>Dlhé pauzy:</strong> {{ score.pause_count }}</p>
+                    <p><strong>Pomer filler slov:</strong> {{ score.filler_ratio|floatformat:2 }}</p>
+                </div>
+            </div>
+
+            {% if score.transcript %}
+                <div class="mb-4">
+                    <h3 class="font-semibold mb-2">Transcript</h3>
+                    <div class="bg-gray-50 rounded-xl p-4 text-sm leading-relaxed text-gray-800">
+                        {{ score.transcript }}
+                    </div>
+                </div>
+            {% endif %}
+
+            {% if score.analysis %}
+                <div class="mb-2">
+                    <h3 class="font-semibold mb-2">AI feedback</h3>
+                    <div class="bg-blue-50 rounded-xl p-4 text-sm leading-relaxed text-gray-800 whitespace-pre-line">
+                        {{ score.analysis }}
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+    {% empty %}
+        <div class="p-6 bg-white rounded-2xl shadow text-gray-500">
+            Zatiaľ tu nemáte žiadne výsledky.
+        </div>
+    {% endfor %}
+
+    {% if page_obj.paginator.num_pages > 1 %}
+        <div class="mt-8 flex items-center gap-2 flex-wrap">
+            {% if page_obj.has_previous %}
+                <a href="?page=1{% if search_id %}&id={{ search_id }}{% endif %}" class="px-3 py-2 border rounded-lg">
+                    Prvá
+                </a>
+                <a href="?page={{ page_obj.previous_page_number }}{% if search_id %}&id={{ search_id }}{% endif %}" class="px-3 py-2 border rounded-lg">
+                    Predchádzajúca
+                </a>
+            {% endif %}
+
+            <span class="px-3 py-2 text-sm text-gray-600">
+                Strana {{ page_obj.number }} z {{ page_obj.paginator.num_pages }}
+            </span>
+
+            {% if page_obj.has_next %}
+                <a href="?page={{ page_obj.next_page_number }}{% if search_id %}&id={{ search_id }}{% endif %}" class="px-3 py-2 border rounded-lg">
+                    Ďalšia
+                </a>
+                <a href="?page={{ page_obj.paginator.num_pages }}{% if search_id %}&id={{ search_id }}{% endif %}" class="px-3 py-2 border rounded-lg">
+                    Posledná
+                </a>
+            {% endif %}
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

@@ -11,11 +11,19 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
 from pathlib import Path
+import os
+from pathlib import Path
+from dotenv import load_dotenv
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+load_dotenv(BASE_DIR / ".env")
 
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+
+if not OPENAI_API_KEY:
+    raise ValueError("OPENAI_API_KEY sa nenašiel v .env súbore")
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
@@ -26,6 +34,16 @@ SECRET_KEY = 'django-insecure-0w@4-clq*sahdj6d78)p=t^*8liz-#&85li-xr56_&j@wdz-%y
 DEBUG = True
 
 ALLOWED_HOSTS = []
+
+CACHES = {
+    "default": {
+        "BACKEND": "django.core.cache.backends.redis.RedisCache",
+        "LOCATION": "redis://127.0.0.1:6379/1",
+    }
+}
+
+RATELIMIT_USE_CACHE = "default"
+
 
 
 # Application definition
@@ -49,7 +67,10 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    "django_ratelimit.middleware.RatelimitMiddleware",
 ]
+
+RATELIMIT_VIEW = "test.views.ratelimited_error"
 
 ROOT_URLCONF = 'speakercoach.urls'
 
@@ -78,6 +99,11 @@ EMAIL_USE_TLS = True
 EMAIL_HOST_USER = 'jakubkubala729@gmail.com'
 EMAIL_HOST_PASSWORD = 'wfmq yyto uzgt myac'
 
+
+
+LOGIN_REDIRECT_URL = 'landingpage'
+LOGOUT_REDIRECT_URL = 'login'
+LOGIN_URL = 'login'
 
 
 # Database
@@ -113,13 +139,17 @@ AUTH_PASSWORD_VALIDATORS = [
 # Internationalization
 # https://docs.djangoproject.com/en/5.2/topics/i18n/
 
-LANGUAGE_CODE = 'en-us'
 
 TIME_ZONE = 'UTC'
 
-USE_I18N = True
 
 USE_TZ = True
+
+LANGUAGE_CODE = 'sk'
+
+USE_I18N = True
+
+USE_L10N = True
 
 
 # Static files (CSS, JavaScript, Images)

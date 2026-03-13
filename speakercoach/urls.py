@@ -1,14 +1,14 @@
 from django.contrib import admin
-from django.urls import path, include  # ✅ include must be imported
+from django.urls import path, include
 from .views import landing_page
-from test.views import testView, get_history, save_session
+from test.views import testView, history_page, save_session
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', landing_page, name="landingpage"),
-    path('accounts/', include('accounts.urls')),  # ✅ include accounts app urls
+    path('accounts/', include('accounts.urls')),  
+    path("api/", include("test.urls")),
     path('test/', testView, name="test"),
-    path('api/history/', get_history, name='get_history'),
+    path('api/history/', history_page, name='history_page'),
     path('api/save-session/', save_session, name='save_session'),
-    
 ]

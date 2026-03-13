@@ -2,19 +2,8 @@
 <html lang="en">
   <head>
     {% load static %}
-    <link rel="stylesheet" href="{%static 'dist/styles.css'%}">
-    <link href="https://cdn.tailwindcss.com" rel="stylesheet">
-    <link
-  rel="stylesheet"
-  href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css"
-  integrity="sha512-KKc1vwKmKzRV4O4LPg8W6K64oXvSGH8iSK8qHNmZVwZXnBlCq3OQzPdr0A1AHzE0MqR8fILCvf0bdfZZm7ke8g=="
-  crossorigin="anonymous"
-  referrerpolicy="no-referrer"
-/>
-    <link rel="stylesheet" href="{%static 'styles/base.css'%}">
-
-    <script src="https://kit.fontawesome.com/YOUR_KIT_ID.js" crossorigin="anonymous"></script>
-
+    <link rel="stylesheet" href="{% static 'dist/styles.css' %}">
+    
     {% block title %}
       <title>Kouč rečníctva</title>
     {% endblock %}

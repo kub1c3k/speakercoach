@@ -1,17 +1,86 @@
 {% extends 'base.html' %}
 {% block content %}
-<div class="max-w-md mx-auto my-12 p-8 bg-white rounded-xl shadow-lg text-center">
-    <h2 class="text-3xl font-bold text-cyan-600 mb-6">Registrácia</h2>
-    <form method="post" class="space-y-4">
-        {% csrf_token %}
-        {{ form.as_p }}
-        <button type="submit"
-            class="w-full bg-gradient-to-r from-cyan-400 to-green-400 text-white font-semibold py-3 rounded-full shadow-lg hover:shadow-xl transition-transform duration-300 transform hover:scale-105">
-            Registrovať
-        </button>
-    </form>
-    <p class="mt-4 text-sm">Už máte účet? 
-        <a href="{% url 'login' %}" class="text-cyan-600 hover:underline">Prihlásiť sa</a>
-    </p>
+<div class="min-h-screen flex items-center justify-center ">
+    <div class="w-full max-w-md bg-white p-8 rounded-lg shadow-md">
+        <h2 class="text-2xl font-bold text-center mb-6">Registrácia</h2>
+
+        <form method="post" class="space-y-4">
+            {% csrf_token %}
+
+            <!-- Username -->
+            <div>
+                <label class="block text-sm font-medium text-gray-700">
+                    {{ form.username.label }}
+                </label>
+                {{ form.username }}
+                {% if form.username.help_text %}
+                    <p class="text-xs text-gray-500 mt-1">
+                        {{ form.username.help_text }}
+                    </p>
+                {% endif %}
+                {% for error in form.username.errors %}
+                    <p class="text-sm text-red-600 mt-1">{{ error }}</p>
+                {% endfor %}
+            </div>
+
+            <!-- Email -->
+            <div>
+                <label class="block text-sm font-medium text-gray-700">
+                    {{ form.email.label }}
+                </label>
+                {{ form.email }}
+                {% if form.email.help_text %}
+                    <p class="text-xs text-gray-500 mt-1">
+                        {{ form.email.help_text }}
+                    </p>
+                {% endif %}
+                {% for error in form.email.errors %}
+                    <p class="text-sm text-red-600 mt-1">{{ error }}</p>
+                {% endfor %}
+            </div>
+
+            <!-- Password -->
+            <div>
+                <label class="block text-sm font-medium text-gray-700">
+                    {{ form.password1.label }}
+                </label>
+                {{ form.password1 }}
+                {% if form.password1.help_text %}
+                    <p class="text-xs text-gray-500 mt-1">
+                        {{ form.password1.help_text|safe  }}
+                    </p>
+                {% endif %}
+                {% for error in form.password1.errors %}
+                    <p class="text-sm text-red-600 mt-1">{{ error }}</p>
+                {% endfor %}
+            </div>
+
+            <!-- Password Confirmation -->
+            <div>
+                <label class="block text-sm font-medium text-gray-700">
+                    {{ form.password2.label }}
+                </label>
+                {{ form.password2 }}
+                {% if form.password2.help_text %}
+                    <p class="text-xs text-gray-500 mt-1">
+                        {{ form.password2.help_text }}
+                    </p>
+                {% endif %}
+                {% for error in form.password2.errors %}
+                    <p class="text-sm text-red-600 mt-1">{{ error }}</p>
+                {% endfor %}
+            </div>
+
+            <!-- Submit -->
+            <button
+                type="submit"
+                class="w-full bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700 transition"
+            >
+                Registruj sa
+            </button>
+        </form>
+    </div>
 </div>
+
+
 {% endblock %}
