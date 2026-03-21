@@ -29,6 +29,7 @@ def signup(request):
                 'token': account_activation_token.make_token(user),
             })
             email = EmailMessage(mail_subject, message, to=[user.email])
+            email.content_subtype = "html"
             email.send()
             return render(request, 'accounts/verification_sent.html')
     else:
