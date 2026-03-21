@@ -152,6 +152,20 @@ LOGIN_REDIRECT_URL = "landingpage"
 LOGOUT_REDIRECT_URL = "login"
 LOGIN_URL = "login"
 
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "handlers": {
+        "console": {
+            "class": "logging.StreamHandler",
+        },
+    },
+    "root": {
+        "handlers": ["console"],
+        "level": "INFO",
+    },
+}
+
 # Password validation
 AUTH_PASSWORD_VALIDATORS = [
     {
