@@ -1,3 +1,4 @@
+import logging
 from django.shortcuts import render, redirect
 from django.contrib.auth import login
 from django.contrib.sites.shortcuts import get_current_site
@@ -7,33 +8,63 @@ from django.utils.encoding import force_bytes, force_str
 from django.contrib.auth.models import User
 from django.core.mail import EmailMessage
 from django.contrib.auth.decorators import login_required
+from django.conf import settings
+
 from .forms import SignUpForm
 from .tokens import account_activation_token
 from .models import Score
 
-# Registration view
+logger = logging.getLogger(__name__)
+
+
 def signup(request):
     if request.method == 'POST':
         form = SignUpForm(request.POST)
+
         if form.is_valid():
-            user = form.save(commit=False)
-            user.is_active = False  # deactivate until email verified
-            user.save()
-            # Send verification email
-            current_site = get_current_site(request)
-            mail_subject = 'Overenie účtu'
-            message = render_to_string('accounts/acc_active_email.html', {
-                'user': user,
-                'domain': current_site.domain,
-                'uid': urlsafe_base64_encode(force_bytes(user.pk)),
-                'token': account_activation_token.make_token(user),
-            })
-            email = EmailMessage(mail_subject, message, to=[user.email])
-            email.content_subtype = "html"
-            email.send()
-            return render(request, 'accounts/verification_sent.html')
+            try:
+                user = form.save(commit=False)
+                user.is_active = False
+                user.save()
+
+                current_site = get_current_site(request)
+                mail_subject = 'Overenie účtu'
+                message = render_to_string('accounts/acc_active_email.html', {
+                    'user': user,
+                    'domain': current_site.domain,
+                    'uid': urlsafe_base64_encode(force_bytes(user.pk)),
+                    'token': account_activation_token.make_token(user),
+                })
+
+                email = EmailMessage(
+                    subject=mail_subject,
+                    body=message,
+                    from_email=settings.DEFAULT_FROM_EMAIL,
+                    to=[user.email],
+                )
+                email.content_subtype = "html"
+                email.send(fail_silently=False)
+
+                return render(request, 'accounts/verification_sent.html')
+
+            except Exception as e:
+                logger.exception("Signup failed after valid form submission")
+
+                # optional rollback so inactive broken users are not left behind
+                if 'user' in locals() and user.pk:
+                    user.delete()
+
+                return render(request, 'accounts/signup.html', {
+                    'form': form,
+                    'error_message': f'Chyba pri registrácii: {str(e)}'
+                })
+
+        else:
+            logger.warning("Signup form invalid: %s", form.errors)
+
     else:
         form = SignUpForm()
+
     return render(request, 'accounts/signup.html', {'form': form})
 
 # Activate account
