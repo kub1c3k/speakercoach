@@ -1,6 +1,6 @@
 import logging
 from django.shortcuts import render, redirect
-from django.contrib.auth import login
+from django.contrib.auth import login, logout
 from django.contrib.sites.shortcuts import get_current_site
 from django.template.loader import render_to_string
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
@@ -87,3 +87,7 @@ def activate(request, uidb64, token):
 def dashboard(request):
     scores = request.user.scores.all().order_by('-date')
     return render(request, 'accounts/dashboard.html', {'scores': scores})
+
+def logout_view(request):
+    logout(request)
+    return redirect('login')
