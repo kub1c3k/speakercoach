@@ -24,9 +24,12 @@ def home(request):
 
 
 
+from django.db.models import Avg
+
 @login_required
 def history_page(request):
-    scores = Score.objects.filter(user=request.user).order_by("-date")
+    base_scores = Score.objects.filter(user=request.user)
+    scores = base_scores.order_by("-date")
 
     search_id = request.GET.get("id", "").strip()
 
@@ -40,9 +43,70 @@ def history_page(request):
     page_number = request.GET.get("page")
     page_obj = paginator.get_page(page_number)
 
+    comparison = None
+    if base_scores.count() >= 6:
+        first_3_ids = list(base_scores.order_by("date")[:3].values_list('id', flat=True))
+        last_3_ids = list(base_scores.order_by("-date")[:3].values_list('id', flat=True))
+
+        first_3_stats = Score.objects.filter(id__in=first_3_ids).aggregate(
+            avg_eye_contact=Avg('eye_contact_percentage'),
+            avg_tempo=Avg('tempo_wpm'),
+            avg_filler_ratio=Avg('filler_ratio')
+        )
+        last_3_stats = Score.objects.filter(id__in=last_3_ids).aggregate(
+            avg_eye_contact=Avg('eye_contact_percentage'),
+            avg_tempo=Avg('tempo_wpm'),
+            avg_filler_ratio=Avg('filler_ratio')
+        )
+        
+        comparison = {
+            'first_3': first_3_stats,
+            'last_3': last_3_stats
+        }
+
+        def safe_get(d, key, default=0.0):
+            val = d.get(key)
+            return val if val is not None else default
+
+        feedback = []
+        
+        # Očný kontakt
+        first_eye = safe_get(first_3_stats, 'avg_eye_contact')
+        last_eye = safe_get(last_3_stats, 'avg_eye_contact')
+        diff_eye = last_eye - first_eye
+        if diff_eye > 5:
+            feedback.append({"type": "positive", "text": "Výrazne si zlepšil očný kontakt s publikom (pohľad na stred)."})
+        elif diff_eye > 0:
+            feedback.append({"type": "positive", "text": "Tvoj očný kontakt s publikom sa mierne zlepšil."})
+        elif diff_eye < -5:
+            feedback.append({"type": "negative", "text": "Tvoj očný kontakt s publikom klesol. Skús sa viac sústrediť na interakciu s kamerou/publikom."})
+
+        # Výplňové slová
+        first_fill = safe_get(first_3_stats, 'avg_filler_ratio')
+        last_fill = safe_get(last_3_stats, 'avg_filler_ratio')
+        diff_fill = last_fill - first_fill
+        if diff_fill < -0.05:
+            feedback.append({"type": "positive", "text": "Skvelá práca, výrazne si znížil používanie parazitných/výplňových slov!"})
+        elif diff_fill < -0.01:
+            feedback.append({"type": "positive", "text": "Podarilo sa ti znížiť pomer výplňových slov, si na dobrej ceste."})
+        elif diff_fill > 0.05:
+            feedback.append({"type": "negative", "text": "V posledných tréningoch častejšie používaš výplňové slová. Skús namiesto nich využívať krátke ticho (pauzy)."})
+
+        # Tempo
+        first_tempo = safe_get(first_3_stats, 'avg_tempo')
+        last_tempo = safe_get(last_3_stats, 'avg_tempo')
+        diff_tempo = last_tempo - first_tempo
+        if diff_tempo > 15:
+            feedback.append({"type": "neutral", "text": "Tvoje tempo reči sa oproti prvým tréningom zrýchlilo."})
+        elif diff_tempo < -15:
+            feedback.append({"type": "neutral", "text": "Tvoje tempo reči sa oproti začiatkom mierne spomalilo."})
+            
+        comparison['feedback'] = feedback
+
     return render(request, "test/history.html", {
         "page_obj": page_obj,
         "search_id": search_id,
+        "comparison": comparison,
     })
 
 @login_required
