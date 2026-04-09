@@ -510,16 +510,31 @@ function updateTimer() {
 
 /* ---------------- pohľad ---------------- */
 function detectGaze(c, cal) {
-    const dx = c.x - cal.center.x;
-    const dy = c.y - cal.center.y;
-    const tx = Math.abs(cal.left.x - cal.right.x) * 0.35;
-    const ty = Math.abs(cal.up.y - cal.down.y) * 0.35;
+    if (!cal || !cal.center || !cal.left || !cal.right || !cal.up || !cal.down) {
+        return "CENTER";
+    }
 
-    if (dx > tx) return "RIGHT";
-    if (dx < -tx) return "LEFT";
-    if (dy > ty) return "DOWN";
-    if (dy < -ty) return "UP";
-    return "CENTER";
+    // Pomocou euklidovskej vzdialenosti k uloženým kalibračným bodom klasifikujeme pohľad.
+    // Stred trochu zvýhodníme (koeficientom), aby nebol pohľad zbytočne prchký
+    const dists = {
+        CENTER: Math.hypot(c.x - cal.center.x, c.y - cal.center.y) * 0.85,
+        LEFT: Math.hypot(c.x - cal.left.x, c.y - cal.left.y),
+        RIGHT: Math.hypot(c.x - cal.right.x, c.y - cal.right.y),
+        UP: Math.hypot(c.x - cal.up.x, c.y - cal.up.y),
+        DOWN: Math.hypot(c.x - cal.down.x, c.y - cal.down.y)
+    };
+
+    let bestGaze = "CENTER";
+    let minDist = Infinity;
+
+    for (const [gaze, dist] of Object.entries(dists)) {
+        if (!isNaN(dist) && dist < minDist) {
+            minDist = dist;
+            bestGaze = gaze;
+        }
+    }
+
+    return bestGaze;
 }
 
 /* ---------------- ramce ---------------- */
@@ -706,16 +721,22 @@ function showModal(msg) {
 
 /* ---------------- UI ---------------- */
 elements.startButton.onclick = async () => {
+    if (appState.sessionActive) return;
     await getMedia();
     await initializeMediaPipe();
     await startSession();
 };
 
 elements.stopButton.onclick = async () => {
+    if (!appState.sessionActive) return;
     await stopSession();
 };
 
 elements.calibrateButton.onclick = async () => {
+    if (appState.sessionActive) {
+        alert("Počas prebiehajúceho testu nie je možné znovu kalibrovať, najprv zastavte test.");
+        return;
+    }
     await getMedia();
     await initializeMediaPipe();
     await calibrateUser();
