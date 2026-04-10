@@ -1,60 +1,17 @@
-annotated-types==0.7.0
-anyio==4.11.0
-asgiref==3.10.0
-assemblyai==0.46.0
-audioop-lts==0.2.2
-audioread==3.1.0
-cachetools==6.2.2
-certifi==2025.11.12
-cffi==2.0.0
-charset-normalizer==3.4.4
-decorator==5.2.1
-distro==1.9.0
-Django==5.2.7
-django-ratelimit==4.1.0
-ffmpeg-python==0.2.0
-future==1.0.0
-grpcio==1.76.0
-grpcio-status==1.76.0
-h11==0.16.0
-httpcore==1.0.9
-httpx==0.28.1
-idna==3.11
-lazy_loader==0.4
-msgpack==1.1.2
-openai==2.16.0
-packaging==25.0
-platformdirs==4.5.0
-pooch==1.8.2
-proto-plus==1.26.1
-protobuf==6.33.1
-psycopg==3.3.3
-psycopg-binary==3.3.3
-pyasn1==0.6.1
-pyasn1_modules==0.4.2
-pycparser==2.23
-pydantic==2.12.4
-pydantic_core==2.41.5
-pydub==0.25.1
-python-dotenv==1.2.2
-redis==7.3.0
-requests==2.32.5
-rsa==4.9.1
-scipy==1.16.3
-sniffio==1.3.1
-soundfile==0.13.1
-soxr==1.0.0
-sqlparse==0.5.3
-standard-aifc==3.13.0
-standard-chunk==3.13.0
-standard-sunau==3.13.0
-threadpoolctl==3.6.0
-dj-database-url==3.1.2
-whitenoise==6.12.0
-django-anymail[resend]==11.1
-tqdm==4.67.2
-typing-inspection==0.4.2
-typing_extensions==4.15.0
-urllib3==2.5.0
-websockets==15.0.1
-gunicorn==23.0.0
+# --- CORE DJANGO ---
+Django==5.2.7           # Główny framework aplikácie
+gunicorn==23.0.0        # Produkčný WSGI server pre nasadenie (Render/Heroku/AWS)
+
+# --- DATABASE & INFRASTRUCTURE ---
+psycopg-binary==3.3.3   # Nekomplikovaný Postgres adaptér pre produkčnú databázu
+dj-database-url==3.1.2  # Bezpečné čítanie DATABASE_URL z prostredia
+python-dotenv==1.2.2    # Načítanie súboru .env pre lokálny vývoj
+whitenoise==6.12.0      # Starostlivosť o rýchle a bezpečné doručovanie statických súborov (CSS/JS) v produkcii
+
+# --- CACHING & SECURITY ---
+redis==7.3.0            # Cache backend (využívané pre ochranu rate limitingom)
+django-ratelimit==4.1.0 # Ochrana proti spamu na transcribe_view
+
+# --- EXTERNAL APIS ---
+openai==2.16.0               # Klient pre bezproblémové napojenie na Whisper_v1 model
+django-anymail[resend]==11.1 # Asynchrónne doručovanie registračných e-mailov cez službu Resend
