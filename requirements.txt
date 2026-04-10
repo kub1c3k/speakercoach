@@ -3,6 +3,7 @@ Django==5.2.7           # Główny framework aplikácie
 gunicorn==23.0.0        # Produkčný WSGI server pre nasadenie (Render/Heroku/AWS)
 
 # --- DATABASE & INFRASTRUCTURE ---
+psycopg==3.3.3          # Základná python PostgreSQL knižnica (nutné pre v3)
 psycopg-binary==3.3.3   # Nekomplikovaný Postgres adaptér pre produkčnú databázu
 dj-database-url==3.1.2  # Bezpečné čítanie DATABASE_URL z prostredia
 python-dotenv==1.2.2    # Načítanie súboru .env pre lokálny vývoj
