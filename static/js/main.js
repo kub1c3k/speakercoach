@@ -261,25 +261,24 @@ async function stopAudioRecordingAndUpload() {
                 const controller = new AbortController();
                 const timeoutId = setTimeout(() => controller.abort(), 60000);
 
-                try {
-                    const response = await fetch("/api/transcribe/", {
-                        method: "POST",
-                        body: formData,
-                        headers: {
-                            "X-CSRFToken": getCookie("csrftoken")
-                        },
-                        signal: controller.signal
-                    });
+                const response = await fetch("/api/transcribe/", {
+                    method: "POST",
+                    body: formData,
+                    headers: {
+                        "X-CSRFToken": getCookie("csrftoken")
+                    },
+                    signal: controller.signal
+                });
 
-                    clearTimeout(timeoutId);
+                clearTimeout(timeoutId);
 
-                    const data = await response.json();
+                const data = await response.json();
 
-                    if (!response.ok) {
-                        console.error("Transcription error:", data);
-                        reject(data);
-                        return;
-                    }
+                if (!response.ok) {
+                    console.error("Transcription error:", data);
+                    reject(data);
+                    return;
+                }
 
                 const transcript = data.text || "";
                 appState.audio.finalTranscript = transcript;
