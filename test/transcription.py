@@ -4,6 +4,9 @@ from .openai_client import client
 def transcribe_audio(uploaded_file):
     uploaded_file.seek(0)
 
+    if uploaded_file.size > 25 * 1024 * 1024:
+        raise ValueError("File exceeds OpenAI 25MB limit")
+
     if not uploaded_file.name:
         raise ValueError("Uploaded file has no filename")
 
@@ -14,7 +17,7 @@ def transcribe_audio(uploaded_file):
         timestamp_granularities=["word", "segment"],
         file=(
             uploaded_file.name,
-            uploaded_file.read(),
+            uploaded_file,
             uploaded_file.content_type or "application/octet-stream",
         ),
     )

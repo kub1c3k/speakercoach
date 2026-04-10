@@ -62,11 +62,17 @@ let faceMesh, camera;
 
 /* ---------------- kamera ---------------- */
 async function getMedia() {
-    if (appState.cameraLoaded) return;
-
-    const stream = await navigator.mediaDevices.getUserMedia({ video: true });
-    stream.getTracks().forEach(track => track.stop());
-    appState.cameraLoaded = true;
+    if (appState.cameraLoaded) return true;
+    try {
+        const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+        stream.getTracks().forEach(track => track.stop());
+        appState.cameraLoaded = true;
+        return true;
+    } catch (err) {
+        console.error("Camera permission denied:", err);
+        alert("Vyžaduje sa prístup ku kamere pre fungovanie aplikácie.");
+        return false;
+    }
 }
 
 /* ---------------- MEDIAPIPE ---------------- */
@@ -186,36 +192,43 @@ async function calibrateUser() {
 
 /* ---------------- audio recording ---------------- */
 async function startAudioRecording() {
-    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-    appState.audio.stream = stream;
-    appState.audio.chunks = [];
+    try {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        appState.audio.stream = stream;
+        appState.audio.chunks = [];
 
-    let mimeType = "";
-    if (MediaRecorder.isTypeSupported("audio/webm")) {
-        mimeType = "audio/webm";
-    } else if (MediaRecorder.isTypeSupported("audio/mp4")) {
-        mimeType = "audio/mp4";
-    } else if (MediaRecorder.isTypeSupported("audio/ogg")) {
-        mimeType = "audio/ogg";
-    }
-
-    const recorder = mimeType
-        ? new MediaRecorder(stream, { mimeType })
-        : new MediaRecorder(stream);
-
-    appState.audio.mimeType = recorder.mimeType || mimeType || "audio/webm";
-    appState.speech.startTime = Date.now();
-
-    recorder.ondataavailable = event => {
-        if (event.data && event.data.size > 0) {
-            appState.audio.chunks.push(event.data);
+        let mimeType = "";
+        if (MediaRecorder.isTypeSupported("audio/webm")) {
+            mimeType = "audio/webm";
+        } else if (MediaRecorder.isTypeSupported("audio/mp4")) {
+            mimeType = "audio/mp4";
+        } else if (MediaRecorder.isTypeSupported("audio/ogg")) {
+            mimeType = "audio/ogg";
         }
-    };
 
-    recorder.start();
-    appState.audio.mediaRecorder = recorder;
+        const recorder = mimeType
+            ? new MediaRecorder(stream, { mimeType })
+            : new MediaRecorder(stream);
 
-    console.log("Audio recording started:", appState.audio.mimeType);
+        appState.audio.mimeType = recorder.mimeType || mimeType || "audio/webm";
+        appState.speech.startTime = Date.now();
+
+        recorder.ondataavailable = event => {
+            if (event.data && event.data.size > 0) {
+                appState.audio.chunks.push(event.data);
+            }
+        };
+
+        recorder.start();
+        appState.audio.mediaRecorder = recorder;
+
+        console.log("Audio recording started:", appState.audio.mimeType);
+        return true;
+    } catch (err) {
+        console.error("Microphone permission denied:", err);
+        alert("Vyžaduje sa prístup k mikrofónu pre fungovanie aplikácie.");
+        return false;
+    }
 }
 
 async function stopAudioRecordingAndUpload() {
@@ -246,18 +259,28 @@ async function stopAudioRecordingAndUpload() {
                 const formData = new FormData();
                 formData.append("file", fullBlob, filename);
 
-                const response = await fetch("/api/transcribe/", {
-                    method: "POST",
-                    body: formData
-                });
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 60000);
 
-                const data = await response.json();
+                try {
+                    const response = await fetch("/api/transcribe/", {
+                        method: "POST",
+                        body: formData,
+                        headers: {
+                            "X-CSRFToken": getCookie("csrftoken")
+                        },
+                        signal: controller.signal
+                    });
 
-                if (!response.ok) {
-                    console.error("Transcription error:", data);
-                    reject(data);
-                    return;
-                }
+                    clearTimeout(timeoutId);
+
+                    const data = await response.json();
+
+                    if (!response.ok) {
+                        console.error("Transcription error:", data);
+                        reject(data);
+                        return;
+                    }
 
                 const transcript = data.text || "";
                 appState.audio.finalTranscript = transcript;
@@ -272,6 +295,9 @@ async function stopAudioRecordingAndUpload() {
 
                 resolve(transcript);
             } catch (err) {
+                if (err.name === 'AbortError') {
+                    console.error("Upload timed out");
+                }
                 reject(err);
             } finally {
                 if (appState.audio.stream) {
@@ -466,7 +492,12 @@ async function startSession() {
     appState.audio.chunks = [];
     appState.audio.finalTranscript = "";
 
-    await startAudioRecording();
+    const audioReady = await startAudioRecording();
+    if (!audioReady) {
+        appState.sessionActive = false;
+        return;
+    }
+    
     updateTimer();
     elements.canvas.classList.remove("hidden");
 }
@@ -722,9 +753,15 @@ function showModal(msg) {
 /* ---------------- UI ---------------- */
 elements.startButton.onclick = async () => {
     if (appState.sessionActive) return;
-    await getMedia();
-    await initializeMediaPipe();
-    await startSession();
+    try {
+        const hasCamera = await getMedia();
+        if (!hasCamera) return;
+        
+        await initializeMediaPipe();
+        await startSession();
+    } catch(err) {
+        console.error("Initialization failed:", err);
+    }
 };
 
 elements.stopButton.onclick = async () => {
@@ -737,7 +774,12 @@ elements.calibrateButton.onclick = async () => {
         alert("Počas prebiehajúceho testu nie je možné znovu kalibrovať, najprv zastavte test.");
         return;
     }
-    await getMedia();
-    await initializeMediaPipe();
-    await calibrateUser();
+    try {
+        const hasCamera = await getMedia();
+        if (!hasCamera) return;
+        await initializeMediaPipe();
+        await calibrateUser();
+    } catch (err) {
+        console.error("Calibration failed:", err);
+    }
 };

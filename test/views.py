@@ -115,8 +115,16 @@ def save_session(request):
     try:
         data = json.loads(request.body)
 
-        gaze_data = data.get("gaze", {})
-        speech_data = data.get("speech", {})
+        def safe_int(d, key, default=0):
+            val = d.get(key, default)
+            return int(val) if val is not None else default
+
+        def safe_float(d, key, default=0.0):
+            val = d.get(key, default)
+            return float(val) if val is not None else default
+
+        gaze_data = data.get("gaze") or {}
+        speech_data = data.get("speech") or {}
         duration_ms = data.get("duration_ms", 0)
         transcript = data.get("transcript", "")
         analysis = data.get("analysis", "")
@@ -129,23 +137,23 @@ def save_session(request):
                 status=400
             )
 
-        duration_seconds = max(0, round(duration_ms / 1000)) if duration_ms else 0
+        duration_seconds = max(0, round(safe_int(data, "duration_ms") / 1000))
 
         score = Score.objects.create(
             user=request.user,
             duration_seconds=duration_seconds,
 
-            eye_contact_percentage=float(gaze_data.get("CENTER", 0) * 100),
-            left_percentage=float(gaze_data.get("LEFT", 0) * 100),
-            right_percentage=float(gaze_data.get("RIGHT", 0) * 100),
-            up_percentage=float(gaze_data.get("UP", 0) * 100),
-            down_percentage=float(gaze_data.get("DOWN", 0) * 100),
+            eye_contact_percentage=safe_float(gaze_data, "CENTER") * 100,
+            left_percentage=safe_float(gaze_data, "LEFT") * 100,
+            right_percentage=safe_float(gaze_data, "RIGHT") * 100,
+            up_percentage=safe_float(gaze_data, "UP") * 100,
+            down_percentage=safe_float(gaze_data, "DOWN") * 100,
 
-            total_words=int(speech_data.get("totalWords", 0)),
-            tempo_wpm=int(speech_data.get("tempoWPM", 0)),
-            filler_count=int(speech_data.get("fillerCount", 0)),
-            pause_count=int(speech_data.get("pauseCount", 0)),
-            filler_ratio=float(speech_data.get("fillerRatio", 0)),
+            total_words=safe_int(speech_data, "totalWords"),
+            tempo_wpm=safe_int(speech_data, "tempoWPM"),
+            filler_count=safe_int(speech_data, "fillerCount"),
+            pause_count=safe_int(speech_data, "pauseCount"),
+            filler_ratio=safe_float(speech_data, "fillerRatio"),
 
             transcript=transcript or "",
             analysis=analysis or "",
@@ -164,14 +172,19 @@ def save_session(request):
             {"status": "error", "message": "Invalid JSON"},
             status=400
         )
+    except (TypeError, ValueError):
+        return JsonResponse(
+            {"status": "error", "message": "Type validation failed"},
+            status=400
+        )
     except Exception as e:
         return JsonResponse(
             {"status": "error", "message": str(e)},
             status=500
         )
 
-@csrf_exempt
-@ratelimit(key="ip", rate="10/m", method="POST", block=True)
+@login_required
+@ratelimit(key="user", rate="10/m", method="POST", block=True)
 def transcribe_view(request):
     if request.method != "POST":
         return JsonResponse({"error": "Povolený je len POST"}, status=405)
