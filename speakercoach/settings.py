@@ -15,28 +15,22 @@ import os
 from dotenv import load_dotenv
 import dj_database_url
 
-# Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# Load environment variables from .env for local development
 load_dotenv(BASE_DIR / ".env")
 
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 if not OPENAI_API_KEY:
     raise ValueError("OPENAI_API_KEY sa nenašiel v .env súbore")
 
-# SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = os.getenv("SECRET_KEY")
 if not SECRET_KEY:
     raise ValueError("SECRET_KEY sa nenašiel v .env súbore")
 
-# SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.getenv("DEBUG", "False").lower() == "true"
 
-# Render hostname
 RENDER_EXTERNAL_HOSTNAME = os.getenv("RENDER_EXTERNAL_HOSTNAME")
 
-# Allowed hosts
 ALLOWED_HOSTS = ["localhost", "127.0.0.1"]
 
 if RENDER_EXTERNAL_HOSTNAME:
@@ -46,7 +40,6 @@ extra_hosts = os.getenv("ALLOWED_HOSTS", "")
 if extra_hosts:
     ALLOWED_HOSTS.extend([host.strip() for host in extra_hosts.split(",") if host.strip()])
 
-# CSRF trusted origins
 CSRF_TRUSTED_ORIGINS = []
 
 if RENDER_EXTERNAL_HOSTNAME:
@@ -56,10 +49,8 @@ extra_csrf = os.getenv("CSRF_TRUSTED_ORIGINS", "")
 if extra_csrf:
     CSRF_TRUSTED_ORIGINS.extend([origin.strip() for origin in extra_csrf.split(",") if origin.strip()])
 
-# Render runs behind a proxy, so Django needs this for HTTPS handling
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 
-# Security settings for production only
 if not DEBUG:
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
@@ -71,7 +62,6 @@ else:
     SESSION_COOKIE_SECURE = False
     CSRF_COOKIE_SECURE = False
     SECURE_SSL_REDIRECT = False
-# Application definition
 INSTALLED_APPS = [
     "django.contrib.admin",
     "django.contrib.auth",
@@ -117,7 +107,6 @@ TEMPLATES = [
 
 WSGI_APPLICATION = "speakercoach.wsgi.application"
 
-# Database
 DATABASES = {
     "default": dj_database_url.config(
         default=os.getenv("DATABASE_URL"),
@@ -126,7 +115,6 @@ DATABASES = {
     )
 }
 
-# Cache / Redis
 REDIS_URL = os.getenv("REDIS_URL")
 
 CACHES = {
@@ -138,7 +126,6 @@ CACHES = {
 
 RATELIMIT_USE_CACHE = "default"
 
-# Email
 EMAIL_BACKEND = "anymail.backends.resend.EmailBackend"
 
 ANYMAIL = {
@@ -147,7 +134,6 @@ ANYMAIL = {
 
 DEFAULT_FROM_EMAIL = os.getenv("DEFAULT_FROM_EMAIL", "noreply@yourdomain.com")
 
-# Authentication redirects
 LOGIN_REDIRECT_URL = "landingpage"
 LOGOUT_REDIRECT_URL = "login"
 LOGIN_URL = "login"
@@ -166,7 +152,6 @@ LOGGING = {
     },
 }
 
-# Password validation
 AUTH_PASSWORD_VALIDATORS = [
     {
         "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator",
@@ -182,19 +167,15 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-# Internationalization
 LANGUAGE_CODE = "sk"
 TIME_ZONE = "UTC"
 USE_I18N = True
 USE_TZ = True
 
-# Static files
 STATIC_URL = "/static/"
 STATICFILES_DIRS = [BASE_DIR / "static"]
 STATIC_ROOT = BASE_DIR / "staticfiles"
 
-# WhiteNoise storage for compressed static files
 STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 
-# Default primary key field type
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"

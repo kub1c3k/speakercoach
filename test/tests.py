@@ -12,7 +12,6 @@ class TestViewsTests(TestCase):
         self.user = User.objects.create_user(username='test_user', password='password123')
 
     def test_save_session_unauthenticated(self):
-        # We assume save_session is mapped in test/urls.py as 'save_session'
         response = self.client.post(reverse('save_session'), {}, content_type="application/json")
         self.assertEqual(response.status_code, 302) # Redirects to login
 

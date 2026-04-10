@@ -155,8 +155,8 @@ async function calibrateUser() {
     if (!faceMesh) return alert("Model not ready");
 
     const dirs = [
-        { key: "left", prompt: "Pozri ĽAVO" },
-        { key: "right", prompt: "Pozri PRAVO" },
+        { key: "left", prompt: "Pozri VĽAVO" },
+        { key: "right", prompt: "Pozri VPRAVO" },
         { key: "center", prompt: "Pozri STRED" },
         { key: "up", prompt: "Pozri HORE" },
         { key: "down", prompt: "Pozri DOLE" }
@@ -491,7 +491,7 @@ async function startSession() {
         appState.sessionActive = false;
         return;
     }
-    
+
     updateTimer();
     elements.canvas.classList.remove("hidden");
 }
@@ -749,7 +749,7 @@ window.addEventListener("beforeunload", () => {
         appState.audio.stream.getTracks().forEach(track => track.stop());
     }
     if (appState.cameraLoaded && elements.video && elements.video.srcObject) {
-       elements.video.srcObject.getTracks().forEach(track => track.stop());
+        elements.video.srcObject.getTracks().forEach(track => track.stop());
     }
 });
 
@@ -760,10 +760,10 @@ elements.startButton.onclick = async () => {
     try {
         const hasCamera = await getMedia();
         if (!hasCamera) return;
-        
+
         await initializeMediaPipe();
         await startSession();
-    } catch(err) {
+    } catch (err) {
         console.error("Initialization failed:", err);
     } finally {
         elements.startButton.disabled = false;

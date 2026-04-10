@@ -65,7 +65,6 @@ def history_page(request):
 
         feedback = []
         
-        # Očný kontakt
         first_eye = safe_get(first_3_stats, 'avg_eye_contact')
         last_eye = safe_get(last_3_stats, 'avg_eye_contact')
         diff_eye = last_eye - first_eye
@@ -76,7 +75,6 @@ def history_page(request):
         elif diff_eye < -5:
             feedback.append({"type": "negative", "text": "Tvoj očný kontakt s publikom klesol. Skús sa viac sústrediť na interakciu s kamerou/publikom."})
 
-        # Výplňové slová
         first_fill = safe_get(first_3_stats, 'avg_filler_ratio')
         last_fill = safe_get(last_3_stats, 'avg_filler_ratio')
         diff_fill = last_fill - first_fill
@@ -87,7 +85,6 @@ def history_page(request):
         elif diff_fill > 0.05:
             feedback.append({"type": "negative", "text": "V posledných tréningoch častejšie používaš výplňové slová. Skús namiesto nich využívať krátke ticho (pauzy)."})
 
-        # Tempo
         first_tempo = safe_get(first_3_stats, 'avg_tempo')
         last_tempo = safe_get(last_3_stats, 'avg_tempo')
         diff_tempo = last_tempo - first_tempo

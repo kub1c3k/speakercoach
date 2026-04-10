@@ -9,7 +9,6 @@ import json
 
 class AccountsViewsTests(TestCase):
     def test_signup_successful(self):
-        # We need to mock email so it doesn't actually try to send Resend emails
         with patch('accounts.views.EmailMessage.send') as mock_send:
             mock_send.return_value = True
             response = self.client.post(reverse('signup'), {
@@ -35,7 +34,6 @@ class AccountsViewsTests(TestCase):
                 'password2': 'StrongP@ssw0rd123!'
             })
             
-            # Should have rolled back, no user created
             self.assertFalse(User.objects.filter(username='failuser').exists())
             self.assertEqual(response.status_code, 200)
             self.assertTemplateUsed(response, 'accounts/signup.html')

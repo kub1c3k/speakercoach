@@ -65,7 +65,6 @@ def signup(request):
 
     return render(request, 'accounts/signup.html', {'form': form})
 
-# Activate account
 def activate(request, uidb64, token):
     try:
         uid = force_str(urlsafe_base64_decode(uidb64))
@@ -80,7 +79,6 @@ def activate(request, uidb64, token):
     else:
         return render(request, 'accounts/activation_invalid.html')
 
-# Dashboard view
 @login_required
 def dashboard(request):
     scores = request.user.scores.all().order_by('-date')
