@@ -28,7 +28,6 @@ const appState = {
     speech: {
         totalWords: 0,
         fillerCount: 0,
-        hesitationCount: 0, // kompatibilita s UI, = fillerCount
         pauseCount: 0,
         longPauses: [],
         wordsWithTiming: [],
@@ -332,7 +331,6 @@ function processTranscriptForMetrics(text) {
 
     appState.speech.totalWords = words.length;
     appState.speech.fillerCount = 0;
-    appState.speech.hesitationCount = 0;
     appState.speech.transcript = [{ time: Date.now(), text }];
 
     words.forEach(w => {
@@ -348,8 +346,6 @@ function processTranscriptForMetrics(text) {
             const matches = normalizedForPhraseMatch.match(regex) || [];
             appState.speech.fillerCount += matches.length;
         });
-
-    appState.speech.hesitationCount = appState.speech.fillerCount;
 }
 
 /* ---------------- voliteľná AI analyza ---------------- */
@@ -482,7 +478,6 @@ async function startSession() {
 
     appState.speech.totalWords = 0;
     appState.speech.fillerCount = 0;
-    appState.speech.hesitationCount = 0;
     appState.speech.pauseCount = 0;
     appState.speech.longPauses = [];
     appState.speech.wordsWithTiming = [];
@@ -750,9 +745,19 @@ function showModal(msg) {
     });
 }
 
+window.addEventListener("beforeunload", () => {
+    if (appState.audio.stream) {
+        appState.audio.stream.getTracks().forEach(track => track.stop());
+    }
+    if (appState.cameraLoaded && elements.video && elements.video.srcObject) {
+       elements.video.srcObject.getTracks().forEach(track => track.stop());
+    }
+});
+
 /* ---------------- UI ---------------- */
 elements.startButton.onclick = async () => {
     if (appState.sessionActive) return;
+    elements.startButton.disabled = true;
     try {
         const hasCamera = await getMedia();
         if (!hasCamera) return;
@@ -761,12 +766,19 @@ elements.startButton.onclick = async () => {
         await startSession();
     } catch(err) {
         console.error("Initialization failed:", err);
+    } finally {
+        elements.startButton.disabled = false;
     }
 };
 
 elements.stopButton.onclick = async () => {
     if (!appState.sessionActive) return;
-    await stopSession();
+    elements.stopButton.disabled = true;
+    try {
+        await stopSession();
+    } finally {
+        elements.stopButton.disabled = false;
+    }
 };
 
 elements.calibrateButton.onclick = async () => {

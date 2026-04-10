@@ -1,4 +1,5 @@
 from .openai_client import client
+import openai
 
 
 def transcribe_audio(uploaded_file):
@@ -10,17 +11,21 @@ def transcribe_audio(uploaded_file):
     if not uploaded_file.name:
         raise ValueError("Uploaded file has no filename")
 
-    result = client.audio.transcriptions.create(
-        model="whisper-1",
-        language="sk",
-        response_format="verbose_json",
-        timestamp_granularities=["word", "segment"],
-        file=(
-            uploaded_file.name,
-            uploaded_file,
-            uploaded_file.content_type or "application/octet-stream",
-        ),
-    )
+    try:
+        result = client.audio.transcriptions.create(
+            model="whisper-1",
+            language="sk",
+            response_format="verbose_json",
+            timestamp_granularities=["word", "segment"],
+            timeout=28.0,
+            file=(
+                uploaded_file.name,
+                uploaded_file,
+                uploaded_file.content_type or "application/octet-stream",
+            ),
+        )
+    except openai.APITimeoutError:
+        raise RuntimeError("Spracovanie zvuku vypršalo (OpenAI API Timeout). Skúste kratší záznam.")
 
     words = []
     if getattr(result, "words", None):

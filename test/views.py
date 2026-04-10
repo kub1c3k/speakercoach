@@ -19,11 +19,6 @@ def testView(request):
 
 
 
-def home(request):
-    return render(request, 'index.html')
-
-
-
 from django.db.models import Avg
 
 @login_required
@@ -112,6 +107,9 @@ def history_page(request):
 @login_required
 @require_POST
 def save_session(request):
+    if len(request.body) > 5 * 1024 * 1024:
+        return JsonResponse({"status": "error", "message": "Payload Too Large"}, status=413)
+
     try:
         data = json.loads(request.body)
 
