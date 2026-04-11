@@ -16,3 +16,6 @@ django-ratelimit==4.1.0 # Ochrana proti spamu na transcribe_view
 # --- EXTERNAL APIS ---
 openai==2.16.0               # Klient pre bezproblémové napojenie na Whisper_v1 model
 django-anymail[resend]==11.1 # Asynchrónne doručovanie registračných e-mailov cez službu Resend
+django-tailwind[reload]
+pytailwindcss
+django-browser-reload

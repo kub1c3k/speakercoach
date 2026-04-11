@@ -34,7 +34,7 @@ def history_page(request):
         else:
             scores = scores.none()
 
-    paginator = Paginator(scores, 5)  # 5 výsledkov na stránku
+    paginator = Paginator(scores, 5) 
     page_number = request.GET.get("page")
     page_obj = paginator.get_page(page_number)
 
@@ -105,7 +105,7 @@ def history_page(request):
 @require_POST
 def save_session(request):
     if len(request.body) > 5 * 1024 * 1024:
-        return JsonResponse({"status": "error", "message": "Payload Too Large"}, status=413)
+        return JsonResponse({"status": "error", "message": "Payload je moc velky"}, status=413)
 
     try:
         data = json.loads(request.body)
@@ -128,7 +128,7 @@ def save_session(request):
 
         if not isinstance(gaze_data, dict) or not isinstance(speech_data, dict):
             return JsonResponse(
-                {"status": "error", "message": "Invalid 'gaze' or 'speech' format"},
+                {"status": "error", "message": "Zly format gaze alebo speech"},
                 status=400
             )
 
@@ -169,7 +169,7 @@ def save_session(request):
         )
     except (TypeError, ValueError):
         return JsonResponse(
-            {"status": "error", "message": "Type validation failed"},
+            {"status": "error", "message": "nepresla validacia typu"},
             status=400
         )
     except Exception as e:

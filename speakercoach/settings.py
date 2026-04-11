@@ -72,6 +72,9 @@ INSTALLED_APPS = [
     'anymail',
     "test",
     "accounts",
+    "tailwind",
+    "theme",
+    "django_browser_reload",
 ]
 
 MIDDLEWARE = [
@@ -84,6 +87,12 @@ MIDDLEWARE = [
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "django_ratelimit.middleware.RatelimitMiddleware",
+    "django_browser_reload.middleware.BrowserReloadMiddleware",
+]
+
+TAILWIND_APP_NAME = 'theme'
+INTERNAL_IPS = [
+    "127.0.0.1",
 ]
 
 RATELIMIT_VIEW = "test.views.ratelimited_error"

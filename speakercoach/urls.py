@@ -11,4 +11,5 @@ urlpatterns = [
     path('test/', testView, name="test"),
     path('api/history/', history_page, name='history_page'),
     path('api/save-session/', save_session, name='save_session'),
+    path("__reload__/", include("django_browser_reload.urls")),
 ]
