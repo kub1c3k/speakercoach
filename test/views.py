@@ -74,16 +74,24 @@ def history_page(request):
             feedback.append({"type": "positive", "text": "Tvoj očný kontakt s publikom sa mierne zlepšil."})
         elif diff_eye < -5:
             feedback.append({"type": "negative", "text": "Tvoj očný kontakt s publikom klesol. Skús sa viac sústrediť na interakciu s kamerou/publikom."})
+        elif diff_eye < 0:
+            feedback.append({"type": "negative", "text": "Tvoj očný kontakt s publikom sa mierne zhoršil."})
+        else:
+            feedback.append({"type": "neutral", "text": "Tvoj očný kontakt s publikom zostal na stabilnej úrovni."})
 
         first_fill = safe_get(first_3_stats, 'avg_filler_ratio')
         last_fill = safe_get(last_3_stats, 'avg_filler_ratio')
         diff_fill = last_fill - first_fill
         if diff_fill < -0.05:
             feedback.append({"type": "positive", "text": "Skvelá práca, výrazne si znížil používanie parazitných/výplňových slov!"})
-        elif diff_fill < -0.01:
+        elif diff_fill < 0:
             feedback.append({"type": "positive", "text": "Podarilo sa ti znížiť pomer výplňových slov, si na dobrej ceste."})
         elif diff_fill > 0.05:
             feedback.append({"type": "negative", "text": "V posledných tréningoch častejšie používaš výplňové slová. Skús namiesto nich využívať krátke ticho (pauzy)."})
+        elif diff_fill > 0:
+            feedback.append({"type": "negative", "text": "Mierne stúplo tvoje používanie výplňových slov."})
+        else:
+            feedback.append({"type": "neutral", "text": "Pomer tvojich výplňových slov zostáva nezmenený."})
 
         first_tempo = safe_get(first_3_stats, 'avg_tempo')
         last_tempo = safe_get(last_3_stats, 'avg_tempo')
@@ -92,6 +100,8 @@ def history_page(request):
             feedback.append({"type": "neutral", "text": "Tvoje tempo reči sa oproti prvým tréningom zrýchlilo."})
         elif diff_tempo < -15:
             feedback.append({"type": "neutral", "text": "Tvoje tempo reči sa oproti začiatkom mierne spomalilo."})
+        else:
+            feedback.append({"type": "positive", "text": "Tvoje tempo reči je stabilné a vyrovnané."})
             
         comparison['feedback'] = feedback
 
