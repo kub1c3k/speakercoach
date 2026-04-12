@@ -31,8 +31,13 @@ DEBUG = os.getenv("DEBUG", "False").lower() == "true"
 
 RENDER_EXTERNAL_HOSTNAME = os.getenv("RENDER_EXTERNAL_HOSTNAME")
 
-ALLOWED_HOSTS = ["localhost", "127.0.0.1"]
-
+ALLOWED_HOSTS = [
+    'koucrecnictva.info',          
+    'www.koucrecnictva.info',      
+    'speakercoach.onrender.com',   
+    '127.0.0.1',                   
+    'localhost',
+]
 if RENDER_EXTERNAL_HOSTNAME:
     ALLOWED_HOSTS.append(RENDER_EXTERNAL_HOSTNAME)
 

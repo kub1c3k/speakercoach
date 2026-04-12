@@ -14,6 +14,7 @@ from django.shortcuts import render
 from django.views.decorators.http import require_POST
 
 
+@login_required
 def testView(request):
     return render(request, "test/test.html")
 
