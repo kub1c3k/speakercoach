@@ -41,3 +41,9 @@ class SignUpForm(UserCreationForm):
             field.widget.attrs.update({
                 "class": "w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             })
+
+    def clean_email(self):
+        email = self.cleaned_data.get('email')
+        if email and User.objects.filter(email=email).exists():
+            raise forms.ValidationError("Účet s týmto emailom už existuje.")
+        return email
