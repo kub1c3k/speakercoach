@@ -15,6 +15,7 @@ def transcribe_audio(uploaded_file):
         result = client.audio.transcriptions.create(
             model="whisper-1",
             language="sk",
+            prompt="Uhm... no, ehm, akože, vlastne, proste, hmm... toto je test.",
             response_format="verbose_json",
             timestamp_granularities=["word", "segment"],
             timeout=28.0,

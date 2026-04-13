@@ -47,6 +47,7 @@ const appState = {
 
 const FILLER_WORDS = [
     "ehm", "em", "eh", "hm", "hmm", "mm", "mhm",
+    "uh", "uhm", "eee", "aha", "čiže", "hej",
     "no", "nó", "akože", "akožeže",
     "vlastně", "vlastne", "vlastněže",
     "proste", "prosto", "prosteže"
@@ -345,6 +346,20 @@ function processTranscriptForMetrics(text) {
             const matches = normalizedForPhraseMatch.match(regex) || [];
             appState.speech.fillerCount += matches.length;
         });
+
+    let cleanTranscript = text;
+    const sortedFillers = [...FILLER_WORDS].sort((a, b) => b.length - a.length);
+    sortedFillers.forEach(filler => {
+        const regex = new RegExp(`\\b${escapeRegExp(filler)}\\b`, "giu");
+        cleanTranscript = cleanTranscript.replace(regex, "");
+    });
+    
+    cleanTranscript = cleanTranscript
+        .replace(/\s+/g, " ")
+        .replace(/\s+([.,!?;:])/g, "$1")
+        .trim();
+
+    appState.audio.finalTranscript = cleanTranscript;
 }
 
 /* ---------------- voliteľná AI analyza ---------------- */
@@ -509,7 +524,7 @@ async function stopSession() {
         saveSessionMetrics();
 
         if (transcript) {
-            await analyzeFullTranscript(transcript);
+            await analyzeFullTranscript(appState.audio.finalTranscript);
         }
 
         await persistSession();
