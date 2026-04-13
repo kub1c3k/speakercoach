@@ -557,12 +557,13 @@ function detectGaze(c, cal) {
 
     // Pomocou euklidovskej vzdialenosti k uloženým kalibračným bodom klasifikujeme pohľad.
     // Stred trochu zvýhodníme (koeficientom), aby nebol pohľad zbytočne prchký
+    // Eliptické hitboxy - pre strany odpustíme úlety Y, pre vertikálu odpustíme X
     const dists = {
         CENTER: Math.hypot(c.x - cal.center.x, c.y - cal.center.y) * 0.85,
-        LEFT: Math.hypot(c.x - cal.left.x, c.y - cal.left.y),
-        RIGHT: Math.hypot(c.x - cal.right.x, c.y - cal.right.y),
-        UP: Math.hypot(c.x - cal.up.x, c.y - cal.up.y),
-        DOWN: Math.hypot(c.x - cal.down.x, c.y - cal.down.y)
+        LEFT: Math.hypot(c.x - cal.left.x, (c.y - cal.left.y) * 0.4),
+        RIGHT: Math.hypot(c.x - cal.right.x, (c.y - cal.right.y) * 0.4),
+        UP: Math.hypot((c.x - cal.up.x) * 0.4, c.y - cal.up.y),
+        DOWN: Math.hypot((c.x - cal.down.x) * 0.4, c.y - cal.down.y)
     };
 
     let bestGaze = "CENTER";
