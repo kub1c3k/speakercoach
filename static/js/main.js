@@ -412,7 +412,13 @@ function saveSessionMetrics() {
     const counts = { LEFT: 0, RIGHT: 0, CENTER: 0, UP: 0, DOWN: 0 };
 
     appState.gazeHistory.forEach(g => {
-        if (counts[g.gaze] !== undefined) counts[g.gaze]++;
+        if (Array.isArray(g.gaze)) {
+            g.gaze.forEach(dir => {
+                if (counts[dir] !== undefined) counts[dir]++;
+            });
+        } else {
+            if (counts[g.gaze] !== undefined) counts[g.gaze]++;
+        }
     });
 
     const durationMs = Date.now() - appState.sessionStart;
@@ -552,29 +558,30 @@ function updateTimer() {
 /* ---------------- pohľad ---------------- */
 function detectGaze(c, cal) {
     if (!cal || !cal.center || !cal.left || !cal.right || !cal.up || !cal.down) {
-        return "CENTER";
+        return ["CENTER"];
     }
 
-    // Pomocou euklidovskej vzdialenosti k uloženým kalibračným bodom klasifikujeme pohľad.
-    // Stred trochu zvýhodníme (koeficientom), aby nebol pohľad zbytočne prchký
-    // Eliptické hitboxy - pre strany odpustíme úlety Y, pre vertikálu odpustíme X
-    const dists = {
-        CENTER: Math.hypot(c.x - cal.center.x, c.y - cal.center.y) * 0.85,
-        LEFT: Math.hypot(c.x - cal.left.x, (c.y - cal.left.y) * 0.4),
-        RIGHT: Math.hypot(c.x - cal.right.x, (c.y - cal.right.y) * 0.4),
-        UP: Math.hypot((c.x - cal.up.x) * 0.4, c.y - cal.up.y),
-        DOWN: Math.hypot((c.x - cal.down.x) * 0.4, c.y - cal.down.y)
-    };
+    const hCenterDist = Math.abs(c.x - cal.center.x) * 0.85;
+    const leftDist = Math.abs(c.x - cal.left.x);
+    const rightDist = Math.abs(c.x - cal.right.x);
 
-    let bestGaze = "CENTER";
-    let minDist = Infinity;
+    let h = "CENTER";
+    if (leftDist < hCenterDist && leftDist < rightDist) h = "LEFT";
+    else if (rightDist < hCenterDist && rightDist < leftDist) h = "RIGHT";
 
-    for (const [gaze, dist] of Object.entries(dists)) {
-        if (!isNaN(dist) && dist < minDist) {
-            minDist = dist;
-            bestGaze = gaze;
-        }
-    }
+    const vCenterDist = Math.abs(c.y - cal.center.y) * 0.85;
+    const upDist = Math.abs(c.y - cal.up.y);
+    const downDist = Math.abs(c.y - cal.down.y);
+
+    let v = "CENTER";
+    if (upDist < vCenterDist && upDist < downDist) v = "UP";
+    else if (downDist < vCenterDist && downDist < upDist) v = "DOWN";
+
+    const bestGaze = [];
+    if (h !== "CENTER") bestGaze.push(h);
+    if (v !== "CENTER") bestGaze.push(v);
+    
+    if (bestGaze.length === 0) bestGaze.push("CENTER");
 
     return bestGaze;
 }
@@ -606,7 +613,7 @@ function handleResults(res) {
         : c;
 
     const gaze = detectGaze(appState.smoothedEye, appState.calibrationData);
-    appState.gazeHistory.push({ time: Date.now(), gaze });
+    appState.gazeHistory.push({ time: Date.now(), gaze, raw: appState.smoothedEye });
 }
 
 /* ---------------- vysledkovy panel ---------------- */
@@ -676,7 +683,73 @@ function showResultsPanel() {
         });
     }
 
+    drawHeatmap();
     updateFeedback();
+}
+
+/* ---------------- heatmapa ---------------- */
+function drawHeatmap() {
+    const heatmapCanvas = document.getElementById("gazeHeatmap");
+    if (!heatmapCanvas) return;
+    
+    // Set actual canvas size from CSS
+    const rect = heatmapCanvas.parentElement.getBoundingClientRect();
+    heatmapCanvas.width = rect.width;
+    heatmapCanvas.height = rect.height;
+
+    const ctx = heatmapCanvas.getContext("2d");
+    const w = heatmapCanvas.width;
+    const h = heatmapCanvas.height;
+    const cal = appState.calibrationData;
+    
+    ctx.clearRect(0, 0, w, h);
+    
+    // Zameriavaci kriz v strede
+    ctx.strokeStyle = "rgba(0, 0, 0, 0.1)";
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(w / 2, 0); ctx.lineTo(w / 2, h);
+    ctx.moveTo(0, h / 2); ctx.lineTo(w, h / 2);
+    ctx.stroke();
+
+    if (!appState.gazeHistory.length || !cal || !cal.center || !cal.left) return;
+
+    // Radius / range from calibration (center to boundaries)
+    const rangeX = Math.max(Math.abs(cal.left.x - cal.center.x), Math.abs(cal.right.x - cal.center.x));
+    const rangeY = Math.max(Math.abs(cal.up.y - cal.center.y), Math.abs(cal.down.y - cal.center.y));
+
+    if (rangeX === 0 || rangeY === 0) return;
+
+    // Render body
+    appState.gazeHistory.forEach(pt => {
+        if (!pt.raw) return;
+
+        // Vypocitat normalizovanu poziciu od -1 po 1 z calibracnych dat
+        const normX = (pt.raw.x - cal.center.x) / rangeX;
+        const normY = (pt.raw.y - cal.center.y) / rangeY;
+
+        // Mapovanie na sirku platna, inverzne X, lebo kamera moze byt zrkadlova (zavisi od raw feedu)
+        // Pouzijeme zrkadlovu orientaciu podla calibration pos
+        const isMirroredX = cal.left.x < cal.right.x;
+        const isMirroredY = cal.up.y > cal.down.y;
+
+        const drawX = w / 2 + (w / 2) * normX * (isMirroredX ? -1 : 1);
+        const drawY = h / 2 + (h / 2) * normY * (isMirroredY ? 1 : -1);
+
+        // Clamping to visual constraints
+        const clampedX = Math.max(10, Math.min(w - 10, drawX));
+        const clampedY = Math.max(10, Math.min(h - 10, drawY));
+
+        ctx.beginPath();
+        // Transparent gradient dot pre heatmap efekt
+        const gradient = ctx.createRadialGradient(clampedX, clampedY, 0, clampedX, clampedY, 8);
+        gradient.addColorStop(0, "rgba(239, 68, 68, 0.3)"); // Tailwind red-500
+        gradient.addColorStop(1, "rgba(239, 68, 68, 0)");
+        
+        ctx.fillStyle = gradient;
+        ctx.arc(clampedX, clampedY, 8, 0, Math.PI * 2);
+        ctx.fill();
+    });
 }
 
 /* ---------------- feedback ---------------- */
