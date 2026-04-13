@@ -172,7 +172,8 @@ async function calibrateUser() {
         while (samples.length < 15) {
             const lm = appState.latestLandmarks;
             if (lm) {
-                const eye = getPoint(LEFT_EYE_INDICES, lm);
+                // Skutočný stred zreničky (Iris)
+                const eye = lm[468] || getPoint(LEFT_EYE_INDICES, lm);
                 const head = getPoint(NOSE_INDICES, lm);
                 if (eye && head) {
                     samples.push({ x: eye.x - head.x, y: eye.y - head.y });
@@ -590,7 +591,8 @@ function handleResults(res) {
 
     if (!appState.sessionActive) return;
 
-    const eye = getPoint(LEFT_EYE_INDICES, lm);
+    // Skutočný stred zreničky miesto priemeru obrysu oka
+    const eye = lm[468] || getPoint(LEFT_EYE_INDICES, lm);
     const head = getPoint(NOSE_INDICES, lm);
     if (!eye || !head) return;
 
