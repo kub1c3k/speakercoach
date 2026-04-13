@@ -561,21 +561,27 @@ function detectGaze(c, cal) {
         return ["CENTER"];
     }
 
-    const hCenterDist = Math.abs(c.x - cal.center.x) * 0.85;
-    const leftDist = Math.abs(c.x - cal.left.x);
-    const rightDist = Math.abs(c.x - cal.right.x);
+    const deltaX = c.x - cal.center.x;
+    const leftDelta = cal.left.x - cal.center.x;
+    const rightDelta = cal.right.x - cal.center.x;
 
     let h = "CENTER";
-    if (leftDist < hCenterDist && leftDist < rightDist) h = "LEFT";
-    else if (rightDist < hCenterDist && rightDist < leftDist) h = "RIGHT";
+    if (deltaX * leftDelta > 0 && Math.abs(deltaX) > Math.abs(leftDelta) * 0.35) {
+        h = "LEFT";
+    } else if (deltaX * rightDelta > 0 && Math.abs(deltaX) > Math.abs(rightDelta) * 0.35) {
+        h = "RIGHT";
+    }
 
-    const vCenterDist = Math.abs(c.y - cal.center.y) * 0.85;
-    const upDist = Math.abs(c.y - cal.up.y);
-    const downDist = Math.abs(c.y - cal.down.y);
+    const deltaY = c.y - cal.center.y;
+    const upDelta = cal.up.y - cal.center.y;
+    const downDelta = cal.down.y - cal.center.y;
 
     let v = "CENTER";
-    if (upDist < vCenterDist && upDist < downDist) v = "UP";
-    else if (downDist < vCenterDist && downDist < upDist) v = "DOWN";
+    if (deltaY * upDelta > 0 && Math.abs(deltaY) > Math.abs(upDelta) * 0.35) {
+        v = "UP";
+    } else if (deltaY * downDelta > 0 && Math.abs(deltaY) > Math.abs(downDelta) * 0.35) {
+        v = "DOWN";
+    }
 
     const bestGaze = [];
     if (h !== "CENTER") bestGaze.push(h);
@@ -688,6 +694,25 @@ function showResultsPanel() {
 }
 
 /* ---------------- heatmapa ---------------- */
+function mapAxis(rawVal, calCenter, calMin, calMax, size) {
+    const delta = rawVal - calCenter;
+    const minDelta = calMin - calCenter;
+    const maxDelta = calMax - calCenter;
+
+    if (Math.abs(minDelta) < 0.0001 || Math.abs(maxDelta) < 0.0001) return size / 2;
+
+    if (delta * minDelta > 0) {
+        const fraction = delta / minDelta;
+        return size / 2 - (size / 2) * fraction;
+    } 
+    else if (delta * maxDelta > 0) {
+        const fraction = delta / maxDelta;
+        return size / 2 + (size / 2) * fraction;
+    }
+    
+    return size / 2;
+}
+
 function drawHeatmap() {
     const heatmapCanvas = document.getElementById("gazeHeatmap");
     if (!heatmapCanvas) return;
@@ -714,27 +739,12 @@ function drawHeatmap() {
 
     if (!appState.gazeHistory.length || !cal || !cal.center || !cal.left) return;
 
-    // Radius / range from calibration (center to boundaries)
-    const rangeX = Math.max(Math.abs(cal.left.x - cal.center.x), Math.abs(cal.right.x - cal.center.x));
-    const rangeY = Math.max(Math.abs(cal.up.y - cal.center.y), Math.abs(cal.down.y - cal.center.y));
-
-    if (rangeX === 0 || rangeY === 0) return;
-
     // Render body
     appState.gazeHistory.forEach(pt => {
         if (!pt.raw) return;
 
-        // Vypocitat normalizovanu poziciu od -1 po 1 z calibracnych dat
-        const normX = (pt.raw.x - cal.center.x) / rangeX;
-        const normY = (pt.raw.y - cal.center.y) / rangeY;
-
-        // Mapovanie na sirku platna, inverzne X, lebo kamera moze byt zrkadlova (zavisi od raw feedu)
-        // Pouzijeme zrkadlovu orientaciu podla calibration pos
-        const isMirroredX = cal.left.x < cal.right.x;
-        const isMirroredY = cal.up.y > cal.down.y;
-
-        const drawX = w / 2 + (w / 2) * normX * (isMirroredX ? -1 : 1);
-        const drawY = h / 2 + (h / 2) * normY * (isMirroredY ? 1 : -1);
+        const drawX = mapAxis(pt.raw.x, cal.center.x, cal.left.x, cal.right.x, w);
+        const drawY = mapAxis(pt.raw.y, cal.center.y, cal.up.y, cal.down.y, h);
 
         // Clamping to visual constraints
         const clampedX = Math.max(10, Math.min(w - 10, drawX));
